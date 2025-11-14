@@ -1,38 +1,31 @@
-from sklearn.cluster import KMeans
+# 1. 라이브러리 불러오기
 from sklearn.datasets import load_iris
-from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
-# 한글 폰트 설정 (폰트가 깨지지 않도록)
-plt.rc('font', family='Malgun Gothic')  # 윈도우 기본 한글 폰트
-plt.rcParams['axes.unicode_minus'] = False  # 마이너스 깨짐 방지
+# 2. 데이터 로드
+iris = load_iris()
+X = iris.data  # 우리는 라벨 y를 사용하지 않음 (비지도학습)
 
-data = load_iris()
-X = data.data
-y = data.target
-target_names = data.target_names
+# 3. KMeans 모델 생성 (k=3)
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
 
+# 4. 클러스터 예측
+y_kmeans = kmeans.predict(X)
+
+# 5. 2D 시각화를 위해 PCA로 차원 축소
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X)
 
-kmeans = KMeans(n_clusters=3, random_state=42)  # KMeans 클러스터링(3개 군집)
-clusters = kmeans.fit_predict(X)  # 군집 예측
-pca2 = PCA(n_components=2)  # 2차원으로 차원 축소
-X_pca2 = pca2.fit_transform(X)  # 차원 축소된 데이터
-
-plt.figure(figsize=(12, 5))
-plt.subplot(1, 2, 1)
-for i, target_name in enumerate(target_names):
-    plt.scatter(X_pca[y == i, 0], X_pca[y == i, 1], label=target_name)
+# 6. 시각화
+plt.figure(figsize=(8, 5))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y_kmeans, cmap='viridis', marker='o', s=50)
+centers = pca.transform(kmeans.cluster_centers_)
+plt.scatter(centers[:, 0], centers[:, 1], c='red', marker='X', s=200, label='Centers')
+plt.title("K-Means Clustering on Iris Dataset (PCA-Reduced)")
 plt.legend()
-plt.title("PCA on Iris Dataset")
-plt.xlabel("PC1")
-plt.ylabel("PC2")
-
-plt.subplot(1, 2, 2)
-plt.scatter(X_pca2[:, 0], X_pca2[:, 1], c=clusters, cmap='viridis')  # 군집 결과 시각화
-plt.title('KMeans 클러스터링 (Iris 데이터셋)')  # 한글 제목
-plt.xlabel('PCA 1')  # x축 이름
-plt.ylabel('PCA 2')  # y축 이름
-
 plt.show()
+
